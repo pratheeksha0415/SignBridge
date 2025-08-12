@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SignBridge — Break the Silence</title>
+  <meta name="description" content="SignBridge — a communication app that translates speech ↔ text ↔ sign. Real‑time translation, offline mode, and multi‑language support." />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html:focus-within { scroll-behavior: smooth; }
+    body { margin: 0; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Helvetica Neue\", Arial, \"Noto Sans\", sans-serif; color: #0f172a; background: #ffffff; }
+    img, picture, svg, video, canvas { display: block; max-width: 100%; }
+    a { text-decoration: none; color: inherit; }
+    button { font: inherit; }
+
+    :root {
+      --header-bg: rgba(255,255,255,0.65);
+      --header-bg-solid: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --accent: #2563eb;
+      --accent-2: #7c3aed;
+      --ring: #93c5fd;
+      --shadow: 0 10px 25px rgba(2,6,23,0.08);
+      --header-h: 72px;
+      --radius: 14px;
+    }
+
+    .site-header {
+      position: fixed; inset: 0 0 auto 0; height: var(--header-h);
+      display: flex; align-items: center; z-index: 999;
+      padding-inline: clamp(16px, 5vw, 40px);
+      backdrop-filter: saturate(180%) blur(10px);
+      background: var(--header-bg);
+      transition: background-color 220ms ease, box-shadow 220ms ease, border-color 220ms ease, transform 220ms ease;
+      border-bottom: 1px solid rgba(2,6,23,0.06);
+    }
+    .site-header.scrolled { background: var(--header-bg-solid); box-shadow: var(--shadow); }
+
+    .nav { width: 100%; display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin-inline: auto; }
+
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: 0.3px; }
+    .brand .logo { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display: grid; place-items: center; color: #fff; font-size: 0.9rem; font-weight: 800; box-shadow: 0 8px 20px rgba(124, 58, 237, 0.35); }
+
+    .nav-links { list-style: none; display: flex; gap: clamp(12px, 2vw, 28px); align-items: center; margin: 0; padding: 0; }
+    .nav-link { position: relative; padding: 8px 10px; border-radius: 10px; color: var(--muted); font-weight: 600; }
+    .nav-link:hover, .nav-link:focus-visible { color: var(--text); outline: none; }
+    .nav-link:hover::after, .nav-link:focus-visible::after { transform: scaleX(1); opacity: 1; }
+    .nav-link::after { content: \"\"; position: absolute; left: 10px; right: 10px; bottom: 3px; height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transform: scaleX(0); transform-origin: left; transition: transform 180ms ease, opacity 180ms ease; opacity: 0; }
+    .nav-link.is-active { color: var(--text); }
+    .nav-link.is-active::after { transform: scaleX(1); opacity: 1; }
+
+    .cta-btn { padding: 10px 16px; border-radius: 999px; font-weight: 700; border: 1px solid rgba(2,6,23,0.08); background: #fff; transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease; }
+    .cta-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); border-color: rgba(2,6,23,0.15); }
+
+    .nav-toggle { display: none; border: none; background: transparent; padding: 8px; border-radius: 10px; }
+    .nav-toggle:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+    @media (max-width: 900px) {
+      .nav-links { position: fixed; top: var(--header-h); right: 12px; left: 12px; flex-direction: column; align-items: stretch; gap: 6px; background: #ffffff; padding: 12px; border-radius: 16px; box-shadow: var(--shadow); transform: translateY(-8px); opacity: 0; pointer-events: none; transition: transform 160ms ease, opacity 160ms ease; }
+      .site-header.menu-open .nav-links { transform: translateY(0); opacity: 1; pointer-events: auto; }
+      .nav-toggle { display: inline-flex; align-items: center; justify-content: center; }
+      .cta-btn { display: none; }
+    }
+
+    main { padding-top: var(--header-h); }
+    .section { padding: clamp(56px, 8vw, 120px) clamp(16px, 5vw, 40px); }
+    .container { max-width: 1200px; margin-inline: auto; }
+
+    .hero { min-height: 72vh; display: grid; place-items: center; background:
+      radial-gradient(1200px 400px at 10% -10%, rgba(124,58,237,0.12), transparent 60%),
+      radial-gradient(1000px 400px at 110% 10%, rgba(37,99,235,0.12), transparent 55%),
+      linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+    }
+    .hero-inner { display: grid; grid-template-columns: 1.2fr 1fr; gap: clamp(20px, 3vw, 40px); align-items: center; }
+    .hero h1 { font-size: clamp(2rem, 3.8vw, 3.2rem); line-height: 1.1; margin: 0 0 14px; }
+    .hero p { color: var(--muted); font-size: clamp(1rem, 1.3vw, 1.15rem); margin: 0 0 22px; }
+    .hero .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 12px; border: 1px solid transparent; font-weight: 700; cursor: pointer; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 10px 25px rgba(37,99,235,0.25); }
+    .btn.ghost { background: #fff; border-color: rgba(2,6,23,0.1); }
+    @media (max-width: 900px) { .hero-inner { grid-template-columns: 1fr; } }
+
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media (max-width: 900px) { .features-grid { grid-template-columns: 1fr; } }
+    .feature-card { padding: 20px; border-radius: var(--radius); border: 1px solid rgba(2,6,23,0.08); background: #fff; box-shadow: var(--shadow); }
+    .feature-card h3 { margin-top: 10px; margin-bottom: 6px; }
+    .feature-card p { color: var(--muted); margin: 0; }
+
+    .showcase { background: #0f172a; color: #e2e8f0; }
+    .showcase .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; }
+    .showcase .panel { background: #111827; border: 1px solid #1f2937; border-radius: var(--radius); padding: 20px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02); }
+    @media (max-width: 900px) { .showcase .grid { grid-template-columns: 1fr; } }
+
+    .testimonials { background: #f8fafc; }
+    .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .quote { background: #fff; border: 1px solid rgba(2,6,23,0.08); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+    .quote .who { color: var(--muted); font-size: 0.95rem; }
+    @media (max-width: 900px) { .quotes { grid-template-columns: 1fr; } }
+
+    .cta { text-align: center; }
+    .cta .card { display: inline-flex; flex-direction: column; gap: 12px; align-items: center; justify-content: center; padding: 28px; border: 1px dashed rgba(2,6,23,0.12); border-radius: calc(var(--radius) + 6px); background: #fff; box-shadow: var(--shadow); }
+
+    footer { color: #64748b; font-size: 0.95rem; border-top: 1px solid rgba(2,6,23,0.08); background: #fff; }
+    footer .row { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .site-header, .nav-link::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header" id="siteHeader">
+    <nav class="nav" aria-label="Primary">
+      <a href="#app" class="brand">
+        <span class="logo" aria-hidden="true">SB</span>
+        <span>SignBridge</span>
+      </a>
+
+      <button class="nav-toggle" aria-label="Toggle menu" aria-controls="primaryNav" aria-expanded="false">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+
+      <ul class="nav-links" id="primaryNav" role="menubar">
+        <li role="none"><a class="nav-link" href="#app" role="menuitem">App</a></li>
+        <li role="none"><a class="nav-link" href="#features" role="menuitem">Features</a></li>
+        <li role="none"><a class="nav-link" href="#demo" role="menuitem">Demo</a></li>
+        <li role="none"><a class="nav-link" href="#reviews" role="menuitem">Reviews</a></li>
+        <li role="none"><a class="nav-link" href="#download" role="menuitem">Download</a></li>
+      </ul>
+
+      <a href="#download" class="cta-btn">Download App</a>
+    </nav>
+  </header>
+
+  <main id="app">
+    <section class="section hero" aria-labelledby="hero-title">
+      <div class="container hero-inner">
+        <div>
+          <h1 id="hero-title">Break the Silence</h1>
+          <p>SignBridge makes conversations inclusive with instant speech ↔ text ↔ sign translation. Real‑time, offline, and multi‑language — so communication never has to wait.</p>
+          <div class="actions">
+            <a class="btn primary" href="#download">Download App</a>
+            <a class="btn ghost" href="#features">Learn More</a>
+          </div>
+        </div>
+        <div class="panel" aria-hidden="true">
+          <img src="https://dummyimage.com/720x480/1f2937/e5e7eb.png&text=Phone+UI:+Live+Captioning" alt="Phone UI showing live captioning and sign translation" />
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features" aria-labelledby="features-title">
+      <div class="container">
+        <h2 id="features-title">Features</h2>
+        <p class="muted">Everything you need for clear, inclusive communication.</p>
+        <div class="features-grid" role="list">
+          <article class="feature-card" role="listitem">
+            <h3>Real‑time Translation</h3>
+            <p>Converts speech to text and sign prompts instantly, with on‑device captioning for quiet or noisy environments.</p>
+          </article>
+          <article class="feature-card" role="listitem">
+            <h3>Offline Mode</h3>
+            <p>Works without internet for emergencies or low‑connectivity areas using optimized on‑device models.</p>
+          </article>
+          <article class="feature-card" role="listitem">
+            <h3>Multi‑language Support</h3>
+            <p>Supports multiple spoken languages and regional sign languages with auto‑detect and quick switching.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section showcase" id="demo" aria-labelledby="demo-title">
+      <div class="container grid">
+        <div>
+          <h2 id="demo-title">See it in Action</h2>
+          <p>Live captions, sign prompts, and two‑way translation on a clean, accessible interface. Works in classrooms, offices, and everyday life.</p>
+        </div>
+        <div class="panel">
+          <img src="https://dummyimage.com/720x420/0b1220/cbd5e1.png&text=App+Screens:+Caption+|+Sign+Prompt+|+Chat" alt="App screenshots showing captioning, sign prompt, and chat" />
+        </div>
+      </div>
+    </section>
+
+    <section class="section testimonials" id="reviews" aria-labelledby="reviews-title">
+      <div class="container">
+        <h2 id="reviews-title">What users say</h2>
+        <div class="quotes">
+          <blockquote class="quote">
+            “I can follow meetings without asking people to repeat. Life‑changing.”
+            <div class="who">— Asha, student (Deaf)</div>
+          </blockquote>
+          <blockquote class="quote">
+            “Offline captions helped during a power cut when the net was down.”
+            <div class="who">— Rohan, caregiver</div>
+          </blockquote>
+          <blockquote class="quote">
+            “We use it in our clinic to bridge conversations with patients.”
+            <div class="who">— Dr. Meera</div>
+          </blockquote>
+        </div>
+      </div>
+    </section>
+
+    <section class="section cta" id="download" aria-labelledby="cta-title">
+      <div class="container">
+        <div class="card">
+          <h2 id="cta-title">Download SignBridge</h2>
+          <p>Start communicating better today.</p>
+          <div class="actions">
+            <a class="btn primary" href="#">Download on the App Store</a>
+            <a class="btn ghost" href="#">Get it on Google Play</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="section">
+    <div class="container row">
+      <div>© <span id="year"></span> SignBridge</div>
+      <div>Built with HTML • CSS • JavaScript</div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const header = document.getElementById('siteHeader');
+      const nav = document.getElementById('primaryNav');
+      const toggle = document.querySelector('.nav-toggle');
+      const links = nav.querySelectorAll('.nav-link');
+
+      function syncHeaderHeight() {
+        const h = header.getBoundingClientRect().height;
+        document.documentElement.style.setProperty('--header-h', h + 'px');
+      }
+      syncHeaderHeight();
+      window.addEventListener('resize', syncHeaderHeight);
+
+      function onScroll() {
+        if (window.scrollY > 4) header.classList.add('scrolled');
+        else header.classList.remove('scrolled');
+      }
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      toggle.addEventListener('click', () => {
+        const open = header.classList.toggle('menu-open');
+        toggle.setAttribute('aria-expanded', String(open));
+      });
+      links.forEach(a => a.addEventListener('click', () => {
+        header.classList.remove('menu-open');
+        toggle.setAttribute('aria-expanded', 'false');
+      }));
+
+      const sectionIds = Array.from(links).map(a => a.getAttribute('href')).filter(h => h.startsWith('#'));
+      const sections = sectionIds.map(id => document.querySelector(id)).filter(Boolean);
+
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            const id = '#' + entry.target.id;
+            const link = nav.querySelector(`a[href="${id}"]`);
+            if (!link) return;
+            if (entry.isIntersecting) {
+              links.forEach(l => l.classList.remove('is-active'));
+              link.classList.add('is-active');
+            }
+          });
+        }, { rootMargin: `-${getComputedStyle(document.documentElement).getPropertyValue('--header-h')} 0px -60% 0px`, threshold: 0.1 });
+
+        sections.forEach(sec => observer.observe(sec));
+      } else {
+        function updateActive() {
+          const y = window.scrollY + parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) + 10;
+          let current = links[0];
+          sections.forEach(sec => { if (sec.offsetTop <= y) current = nav.querySelector(`a[href="#${sec.id}"]`); });
+          links.forEach(l => l.classList.toggle('is-active', l === current));
+        }
+        updateActive();
+        window.addEventListener('scroll', updateActive, { passive: true });
+      }
+
+      document.getElementById('year').textContent = new Date().getFullYear();
+    })();
+  </script>
+</body>
+</html>
